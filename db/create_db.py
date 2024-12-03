@@ -13,11 +13,10 @@ def insert_dataframe(df: pd.DataFrame, table_name: str, db_path: str = "scouting
         table_name: name of the target table
         db_path: path to the DuckDB database file
     """
-    df_tracked = df.copy()
     run_id = str(uuid.uuid4())
     current_time = datetime.utcnow()
-    df_tracked['run_id'] = run_id
-    df_tracked['created_at'] = current_time
+    df['run_id'] = run_id
+    df['created_at'] = current_time
 
     try:
         with duckdb.connect(db_path) as con:
@@ -26,9 +25,9 @@ def insert_dataframe(df: pd.DataFrame, table_name: str, db_path: str = "scouting
             ).fetchone()[0] > 0
 
             if table_exists:
-                con.execute(f"INSERT INTO {table_name} SELECT * FROM df_tracked")
+                con.execute(f"INSERT INTO {table_name} SELECT * FROM df")
             else:
-                con.execute(f"CREATE TABLE {table_name} AS SELECT * FROM df_tracked")
+                con.execute(f"CREATE TABLE {table_name} AS SELECT * FROM df")
 
             con.commit()
     except Exception as e:
