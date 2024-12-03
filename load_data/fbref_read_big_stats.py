@@ -44,6 +44,6 @@ def process_player_stats(df, min_90s, max_age, positions):
     filtered_df = df[df["Pos"].apply(lambda x: x in positions)]
     filtered_df["Age"] = filtered_df["Age"].str.split("-").str[0].astype(int)
     filtered_df = filtered_df[filtered_df["Age"] <= max_age]
-    filtered_df = filtered_df[filtered_df["90s"] <= min_90s]
+    filtered_df = filtered_df[filtered_df["90s"] >= min_90s]
 
     return filtered_df

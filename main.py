@@ -9,6 +9,7 @@ from analysis.player_scout import (
     find_complete_midfielders,
     identify_playmakers,
     identify_pressing_midfielders,
+    analyze_passing_quality
 )
 from load_data.fbref_read_big_stats import process_player_stats, readfromhtml
 from procces_data.passing_stats import process_passing_df
@@ -151,6 +152,7 @@ def analyze_players(
         positions=positions, min_90s=min_90s, max_age=max_age
     )
 
+
     results = {}
 
 
@@ -172,6 +174,8 @@ def analyze_players(
     results["pressing_midfielders"] = identify_pressing_midfielders(
         defensive_stats
     ).head(top_n)
+
+    results["passing_quailty"] = analyze_passing_quality(passing_stats).head(top_n)
 
     results["complete_midfielders"] = find_complete_midfielders(
         passing_stats, possession_stats, defensive_stats
@@ -207,8 +211,8 @@ if __name__ == "__main__":
         min_shots=20,
         top_n=20,
         positions=["MF", "FW, MF", "MF,DF"],
-        min_90s=10,
-        max_age=20,
+        min_90s=5,
+        max_age=30,
     )
 
     # Generate and print report
@@ -218,13 +222,7 @@ if __name__ == "__main__":
         insert_dataframe(v, k)
 
 
-    # # Access individual analyses
-    # print("\nTop 5 Complete Midfielders:")
-    # print(
-    #     results["complete_midfielders"][
-    #         ["Player", "Squad", "Age", "complete_midfielder_score"]
-    #     ].head()
-    # )
+
     print(
-        results["parameters"].head()
+        results["passing_quailty"].head(20)
     )

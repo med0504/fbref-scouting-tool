@@ -23,8 +23,6 @@ def identify_playmakers(passing_df: pd.DataFrame) -> pd.DataFrame:
         Minimum age to consider
     max_age: int
         Maximum age to consider
-    min_90s: float
-        Minimum number of 90-minute periods played
     """
     playmaker_metrics = passing_df.copy()
 
@@ -67,8 +65,6 @@ def find_clinical_forwards(
         DataFrame containing shooting statistics
     min_shots: int
         Minimum number of shots taken
-    min_90s: float
-        Minimum number of 90-minute periods played
     """
     shooting_analysis = shooting_df[(shooting_df["Sh"] >= min_shots)].copy()
 
@@ -109,8 +105,6 @@ def analyze_progressive_midfielders(possession_df: pd.DataFrame) -> pd.DataFrame
     -----------
     possession_df: pd.DataFrame
         DataFrame containing possession statistics
-    min_90s: float
-        Minimum number of 90-minute periods played
     """
     midfield_metrics = possession_df.copy()
 
@@ -145,8 +139,6 @@ def identify_pressing_midfielders(defensive_df: pd.DataFrame) -> pd.DataFrame:
     -----------
     defensive_df: pd.DataFrame
         DataFrame containing defensive statistics
-    min_90s: float
-        Minimum number of 90-minute periods played
     """
     defensive_mids = defensive_df[
         (defensive_df["Pos"].str.contains("MF", na=False))
@@ -190,8 +182,6 @@ def find_complete_midfielders(
         DataFrame containing possession statistics
     defensive_df: pd.DataFrame
         DataFrame containing defensive statistics
-    min_90s: float
-        Minimum number of 90-minute periods played
     """
     progressive = analyze_progressive_midfielders(possession_df)
     defensive = identify_pressing_midfielders(defensive_df)
@@ -221,3 +211,57 @@ def find_complete_midfielders(
     )
 
     return complete_score.sort_values("complete_midfielder_score", ascending=False)
+
+
+def analyze_passing_quality(df):
+    """
+    Analyze passing quality and chance creation for players
+
+    Parameters:
+    df: DataFrame containing passing statistics
+    Returns:
+    DataFrame with passing quality scores and rankings
+    """
+    # Acoid modifying the orginal datframe
+    df_filtered = df.copy()
+
+    df_filtered['passes_per_90'] = df_filtered['total_cmp'] / df_filtered['90s']
+    df_filtered['prog_passes_per_90'] = df_filtered['PrgP'] / df_filtered['90s']
+    df_filtered['key_passes_per_90'] = df_filtered['KP'] / df_filtered['90s']
+    df_filtered['xA_per_90'] = df_filtered['xA'] / df_filtered['90s']
+
+    df_filtered['passing_accuracy_score'] = (
+        df_filtered['total_Cmp%'] / 100 *
+        np.where(df_filtered['total_cmp'] > df_filtered['total_cmp'].median(), 1.2, 1.0)
+    )
+
+    df_filtered['progression_score'] = (
+        df_filtered['prog_passes_per_90'] / df_filtered['prog_passes_per_90'].max() +
+        df_filtered['PrgDist'] / df_filtered['PrgDist'].max()
+    ) / 2
+
+    df_filtered['chance_creation_score'] = (
+        df_filtered['key_passes_per_90'] / df_filtered['key_passes_per_90'].max() +
+        df_filtered['xA_per_90'] / df_filtered['xA_per_90'].max() +
+        df_filtered['PPA'] / df_filtered['PPA'].max()
+    ) / 3
+
+    df_filtered['passing_quality_score'] = (
+        df_filtered['passing_accuracy_score'] * 0.3 +
+        df_filtered['progression_score'] * 0.3 +
+        df_filtered['chance_creation_score'] * 0.4
+    )
+
+    cols_to_round = ['passes_per_90', 'prog_passes_per_90', 'key_passes_per_90', 'xA_per_90',
+                     'passing_accuracy_score', 'progression_score', 'chance_creation_score',
+                     'passing_quality_score']
+
+    df_filtered[cols_to_round] = df_filtered[cols_to_round].round(3)
+
+    result = df_filtered.sort_values('passing_quality_score', ascending=False)
+
+    return result[['Player', 'Squad', 'Comp', '90s',
+                  'passes_per_90', 'total_Cmp%', 'prog_passes_per_90',
+                  'key_passes_per_90', 'xA_per_90',
+                  'passing_accuracy_score', 'progression_score', 'chance_creation_score',
+                  'passing_quality_score']]
