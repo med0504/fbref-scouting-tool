@@ -1,7 +1,7 @@
 import pandas as pd
 
 
-def readfromhtml(filepath):
+def readfromhtml_player(filepath):
     """
     x = readfromhtml(
         "https://fbref.com/en/comps/Big5/shooting/players/Big-5-European-Leagues-Stats"

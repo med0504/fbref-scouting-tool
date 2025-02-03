@@ -11,7 +11,7 @@ from analysis.player_scout import (
     identify_pressing_midfielders,
     analyze_passing_quality
 )
-from load_data.fbref_read_big_stats import process_player_stats, readfromhtml
+from load_data.fbref_read_big_stats import process_player_stats, readfromhtml_player as readfromhtml
 from procces_data.passing_stats import process_passing_df
 from procces_data.shooting_stats import process_shooting_df
 
